@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.rabbitmqbuildtrigger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hudson.Extension;
@@ -102,6 +103,12 @@ public class RemoteBuildListener implements ExtensionPoint, ApplicationMessageLi
     public void onReceive(String queueName, JSONObject json) {
         synchronized (lock) {
             for (RemoteBuildTrigger t : triggers) {
+
+                if (t.getRemoteBuildToken() == null) {
+                    LOGGER.log(Level.WARNING, "ignoring AMQP trigger for project {0}: no token set", t.getProjectName());
+                    continue;
+                }
+
                 if (t.getProjectName().equals(json.getString(KEY_PROJECT))
                         && t.getRemoteBuildToken().equals(json.getString(KEY_TOKEN))) {
                     t.scheduleBuild(queueName, json.getJSONArray(KEY_PARAMETER));
