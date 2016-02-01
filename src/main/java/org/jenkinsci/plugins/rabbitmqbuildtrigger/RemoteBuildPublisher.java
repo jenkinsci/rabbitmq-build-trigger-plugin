@@ -29,6 +29,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
+import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * The extension publish build result using rabbitmq.
