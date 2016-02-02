@@ -52,6 +52,8 @@ public class RemoteBuildPublisher extends Notifier {
 
     /**
      * Creates instance with specified parameters.
+     * @param brokerName
+     * @param routingKey
      */
     @DataBoundConstructor
     public RemoteBuildPublisher(String brokerName, String routingKey) {
@@ -81,6 +83,24 @@ public class RemoteBuildPublisher extends Notifier {
         this.brokerName = brokerName;
     }
 
+    /**
+     * Gets routingKey.
+     *
+     * @return the routingKey.
+     */
+    public String getRoutingKey() {
+        return routingKey;
+    }
+
+    /**
+     * Sets routingKey.
+     *
+     * @param routingKey the routingKey.
+     */
+    public void setRoutingKey(String routingKey) {
+        this.routingKey = routingKey;
+    } 
+    
     /**
      * @inheritDoc
      */
