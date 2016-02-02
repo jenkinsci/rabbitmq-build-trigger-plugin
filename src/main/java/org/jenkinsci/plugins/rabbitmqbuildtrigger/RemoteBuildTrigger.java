@@ -116,7 +116,10 @@ public class RemoteBuildTrigger extends Trigger<AbstractProject<?, ?>> {
      * @return the project name.
      */
     public String getProjectName() {
-        return job.getName();
+        if(job!=null){
+            return job.getName();
+        }
+        return "";
     }
 
     /**
