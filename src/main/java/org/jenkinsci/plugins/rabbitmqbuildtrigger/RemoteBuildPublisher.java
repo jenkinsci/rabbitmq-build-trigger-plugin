@@ -29,6 +29,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
+import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * The extension publish build result using rabbitmq.
@@ -175,7 +176,17 @@ public class RemoteBuildPublisher extends Notifier {
      */
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-
+        public DescriptorImpl() {
+            super(RemoteBuildPublisher.class);
+            load();
+        }
+    
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject formData){              
+            save();
+            return true;
+        }
+        
         /**
          * @inheritDoc
          */
