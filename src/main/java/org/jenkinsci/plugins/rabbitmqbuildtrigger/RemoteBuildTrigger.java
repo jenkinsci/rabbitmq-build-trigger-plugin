@@ -156,7 +156,7 @@ public class RemoteBuildTrigger extends Trigger<AbstractProject<?, ?>> {
                 JSONObject jsonParam = jsonParameters.getJSONObject(i);
 
                 if (defParam.getName().toUpperCase().equals(jsonParam.getString(KEY_PARAM_NAME).toUpperCase())) {
-                    newParams.add(new StringParameterValue(defParam.getName(), jsonParam.getString(KEY_PARAM_VALUE)));
+                    newParams.add(new StringParameterValue(defParam.getName(), jsonParam.getString(KEY_PARAM_VALUE), defParam.getDescription()));
                 }
             }
         }
