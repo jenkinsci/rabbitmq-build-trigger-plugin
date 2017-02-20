@@ -44,13 +44,13 @@ public class JenkinsTest {
 
     @Test
     public void testTriggerBuild() throws Exception {
-        RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
+        RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token", "trigger-queue");
         FreeStyleProject project = j.createFreeStyleProject("triggered-project");
         project.addTrigger(trigger);
         project.getBuildersList().add(new Shell("echo TRIGGERED"));
         trigger.start(project, false);
 
-        String msg = "{\"project\":\"triggered-project\",\"token\":\"trigger-token\"}";
+        String msg = "{\"token\":\"trigger-token\"}";
         RemoteBuildListener listener = MessageQueueListener.all().get(RemoteBuildListener.class);
         listener.onReceive("trigger-queue", "application/json", null, msg.getBytes("UTF-8"));
 
@@ -63,8 +63,8 @@ public class JenkinsTest {
 
     @Test
     public void testNonTriggerBuild() throws Exception {
-        RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
-        FreeStyleProject project = j.createFreeStyleProject("triggered-project2");
+        RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token", "trigger-queue2");
+        FreeStyleProject project = j.createFreeStyleProject("triggered-project");
         project.addTrigger(trigger);
         project.getBuildersList().add(new Shell("echo TRIGGERED"));
         trigger.start(project, false);
@@ -86,7 +86,7 @@ public class JenkinsTest {
             channel.publish(anyString, anyString, (AMQP.BasicProperties)any, new byte[]{anyByte}); result = future;
             future.get(); result = new PublishResult(true, "", "");
         }};
-        RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
+        RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token", "trigger-queue");
         RemoteBuildPublisher publisher = new RemoteBuildPublisher("exchange", "routing-key");
         FreeStyleProject project = j.createFreeStyleProject("triggered-project-publisher");
         project.addTrigger(trigger);
@@ -94,7 +94,7 @@ public class JenkinsTest {
         project.getBuildersList().add(new Shell("echo TRIGGERED"));
         trigger.start(project, false);
 
-        String msg = "{\"project\":\"triggered-project-publisher\",\"token\":\"trigger-token\"}";
+        String msg = "{\"token\":\"trigger-token\"}";
         RemoteBuildListener listener = MessageQueueListener.all().get(RemoteBuildListener.class);
         listener.onReceive("trigger-queue", "application/json", null, msg.getBytes("UTF-8"));
 
@@ -135,8 +135,7 @@ public class JenkinsTest {
         }
         assertThat(project, is(notNullValue()));
 
-        String msg = "{\"project\":\"triggered-project-with-parameter\",\"token\":\"trigger-token\","
-                + "\"parameter\":[{\"name\":\"HOGE\",\"value\":\"fuga\"}]}";
+        String msg = "{\"token\":\"trigger-token\",\"parameter\":[{\"name\":\"HOGE\",\"value\":\"fuga\"}]}";
         RemoteBuildListener listener = MessageQueueListener.all().get(RemoteBuildListener.class);
         listener.onReceive("trigger-queue", "application/json", null, msg.getBytes("UTF-8"));
 

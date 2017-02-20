@@ -11,6 +11,9 @@
     tags they use. Views are always organized according to its owner class,
     so it should be straightforward to find them.
   -->
+  <f:entry title="Queue" field="queue">
+    <f:textbox />
+  </f:entry>
   <f:entry title="${%Token}" field="remoteBuildToken">
     <f:textbox />
   </f:entry>

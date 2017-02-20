@@ -47,6 +47,7 @@ public class RemoteBuildTrigger extends Trigger<AbstractProject<?, ?>> {
     private static final Logger LOGGER = Logger.getLogger(RemoteBuildTrigger.class.getName());
 
     private String remoteBuildToken;
+    private String queue;
 
     /**
      * Creates instance with specified parameters.
@@ -55,9 +56,10 @@ public class RemoteBuildTrigger extends Trigger<AbstractProject<?, ?>> {
      *            the token for remote build.
      */
     @DataBoundConstructor
-    public RemoteBuildTrigger(String remoteBuildToken) {
+    public RemoteBuildTrigger(String remoteBuildToken, String queue) {
         super();
         this.remoteBuildToken = StringUtils.stripToNull(remoteBuildToken);
+        this.queue = queue;
     }
 
     @Override
@@ -109,6 +111,18 @@ public class RemoteBuildTrigger extends Trigger<AbstractProject<?, ?>> {
     public void setRemoteBuildToken(String remoteBuildToken) {
         this.remoteBuildToken = remoteBuildToken;
     }
+
+    /**
+     * Get queue
+     * @return the queue.
+     */
+    public String getQueue() { return queue; }
+
+    /**
+     *
+     * @param queue the queue.
+     */
+    public void setQueue(String queue) { this.queue = queue; }
 
     /**
      * Gets project name.
