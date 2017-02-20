@@ -99,8 +99,12 @@ public class RemoteBuildListener extends MessageQueueListener {
                             continue;
                         }
 
-                        if (t.getProjectName().equals(json.getString(KEY_PROJECT))
-                                && t.getRemoteBuildToken().equals(json.getString(KEY_TOKEN))) {
+                        if (t.getQueue() == null) {
+                            LOGGER.log(Level.WARNING, "ignoring AMQP trigger for project {0}: no queue set", t.getProjectName());
+                            continue;
+                        }
+
+                        if (t.getRemoteBuildToken().equals(json.getString(KEY_TOKEN)) && t.getQueue().equals((queueName))) {
                             if (json.containsKey(KEY_PARAMETER)) {
                                 t.scheduleBuild(queueName, json.getJSONArray(KEY_PARAMETER));
                             } else {
