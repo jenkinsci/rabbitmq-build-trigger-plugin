@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.rabbitmqbuildtrigger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.stapler.export.Exported;
 
 import hudson.model.Cause;
@@ -11,22 +12,28 @@ import hudson.model.Cause;
  */
 public class RemoteBuildCause extends Cause {
 
-    private final String queueName;
+    private String queueName;
+
+    private String reason;
 
     /**
-     * Creates instance with specified parameter.
+     * Creates a new cause with the given queue.
      * 
      * @param queueName
      *            the queue name.
      */
     public RemoteBuildCause(String queueName) {
+        this(queueName, null);
+    }
+
+    public RemoteBuildCause(String queueName, String reason) {
         this.queueName = queueName;
+        this.reason = StringUtils.isNotBlank(reason) ? " (" + reason + ")" : StringUtils.EMPTY;
     }
 
     @Override
     @Exported(visibility = 3)
     public String getShortDescription() {
-        return "Triggered by remote build message from RabbitMQ queue: " + queueName;
+        return "Triggered RabbitMQ message on queue: " + queueName + reason;
     }
-
 }

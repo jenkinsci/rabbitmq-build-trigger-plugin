@@ -45,7 +45,7 @@ Application Message Format
 
 ```json
 {
-    "project": "RPROJECTNAME",
+    "project": "PROJECTNAME",
     "token": "TOKEN",
     "parameter": [
         {
@@ -56,13 +56,21 @@ Application Message Format
             "name": "PARAMETERNAME2",
             "value": "VALUE2"
         }
-    ]
+    ],
+    "reason": "because I said so!"
 }
 ```
 
-name in each parameters is compared with existing parameter name by case-insensitive.
+"project" can is a regular expression that needs to match the target project's full name.
 
-A message must have two properties.
+"project" and "token" is mandatory.
+
+"parameter" entries will be passed to the triggered project(s) as job parameters, matching the
+job parameter name case-insensitively.
+
+"reason" allows an optional reason to be included in the BuildCause.
+
+A message must have two rabbit-mq properties:
 
 ```
 content_type: application/json

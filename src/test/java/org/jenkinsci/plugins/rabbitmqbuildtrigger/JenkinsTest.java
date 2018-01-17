@@ -1,21 +1,11 @@
 package org.jenkinsci.plugins.rabbitmqbuildtrigger;
 
-import java.util.concurrent.Future;
-
+import com.rabbitmq.client.AMQP;
+import hudson.model.*;
 import jenkins.model.Jenkins;
-import hudson.model.Build;
-import hudson.model.FreeStyleBuild;
-import hudson.model.FreeStyleProject;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.Project;
-import hudson.tasks.Shell;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
 import mockit.Mocked;
 import mockit.Expectations;
 import mockit.Verifications;
-
 import org.apache.commons.io.FileUtils;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishChannel;
@@ -26,7 +16,10 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.recipes.LocalData;
 
-import com.rabbitmq.client.AMQP;
+import java.util.concurrent.Future;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
 
 public class JenkinsTest {
     // CS IGNORE VisibilityModifier FOR NEXT 3 LINES. REASON: Mocks tests.
@@ -47,7 +40,6 @@ public class JenkinsTest {
         RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
         FreeStyleProject project = j.createFreeStyleProject("triggered-project");
         project.addTrigger(trigger);
-        project.getBuildersList().add(new Shell("echo TRIGGERED"));
         trigger.start(project, false);
 
         String msg = "{\"project\":\"triggered-project\",\"token\":\"trigger-token\"}";
@@ -56,9 +48,23 @@ public class JenkinsTest {
 
         waitForBuildCompleted(project);
 
-        FreeStyleBuild build = project.getBuilds().getFirstBuild();
-        String s = FileUtils.readFileToString(build.getLogFile());
-        assertThat(s, containsString("TRIGGERED"));
+        assertThat(project.getFirstBuild().getResult(), is(Result.SUCCESS));
+    }
+
+    @Test
+    public void testTriggerWithRegexp() throws Exception {
+        RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
+        FreeStyleProject project = j.createFreeStyleProject("triggered-project");
+        project.addTrigger(trigger);
+        trigger.start(project, false);
+
+        String msg = "{\"project\":\".*\",\"token\":\"trigger-token\"}";
+        RemoteBuildListener listener = MessageQueueListener.all().get(RemoteBuildListener.class);
+        listener.onReceive("trigger-queue", "application/json", null, msg.getBytes("UTF-8"));
+
+        waitForBuildCompleted(project);
+
+        assertThat(project.getFirstBuild().getResult(), is(Result.SUCCESS));
     }
 
     @Test
@@ -66,10 +72,25 @@ public class JenkinsTest {
         RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
         FreeStyleProject project = j.createFreeStyleProject("triggered-project2");
         project.addTrigger(trigger);
-        project.getBuildersList().add(new Shell("echo TRIGGERED"));
         trigger.start(project, false);
 
         String msg = "{\"project\":\"triggered-project\",\"token\":\"trigger-token\"}";
+        RemoteBuildListener listener = MessageQueueListener.all().get(RemoteBuildListener.class);
+        listener.onReceive("trigger-queue", "application/json", null, msg.getBytes("UTF-8"));
+
+        try {Thread.sleep(3000);} catch (Exception e) {}
+
+        assertThat(project.getBuilds().isEmpty(), is(true));
+    }
+
+    @Test
+    public void testNonTriggerWithRegexpBuild() throws Exception {
+        RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
+        FreeStyleProject project = j.createFreeStyleProject("triggered-project2");
+        project.addTrigger(trigger);
+        trigger.start(project, false);
+
+        String msg = "{\"project\":\".*-project\",\"token\":\"trigger-token\"}";
         RemoteBuildListener listener = MessageQueueListener.all().get(RemoteBuildListener.class);
         listener.onReceive("trigger-queue", "application/json", null, msg.getBytes("UTF-8"));
 
@@ -91,7 +112,6 @@ public class JenkinsTest {
         FreeStyleProject project = j.createFreeStyleProject("triggered-project-publisher");
         project.addTrigger(trigger);
         project.getPublishersList().add(publisher);
-        project.getBuildersList().add(new Shell("echo TRIGGERED"));
         trigger.start(project, false);
 
         String msg = "{\"project\":\"triggered-project-publisher\",\"token\":\"trigger-token\"}";
@@ -100,9 +120,7 @@ public class JenkinsTest {
 
         waitForBuildCompleted(project);
 
-        FreeStyleBuild build = project.getBuilds().getFirstBuild();
-        String s = FileUtils.readFileToString(build.getLogFile());
-        assertThat(s, containsString("TRIGGERED"));
+        assertThat(project.getFirstBuild().getResult(), is(Result.SUCCESS));
 
         new Verifications() {{
             String exchangeName;

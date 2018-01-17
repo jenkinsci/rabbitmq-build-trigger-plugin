@@ -1,36 +1,21 @@
 package org.jenkinsci.plugins.rabbitmqbuildtrigger;
 
 import hudson.Extension;
-import hudson.model.Item;
-import hudson.model.ParameterValue;
-import hudson.model.CauseAction;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.Project;
-import hudson.model.Job;
-import hudson.model.StringParameterValue;
+import hudson.model.*;
 import hudson.model.listeners.ItemListener;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Logger;
-
 import jenkins.model.Jenkins;
-
 import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * The extension trigger builds by application message.
@@ -129,18 +114,17 @@ public class RemoteBuildTrigger<T extends Job<?, ?> & ParameterizedJobMixIn.Para
 
     /**
      * Schedules build for triggered job using application message.
-     *
-     * @param queueName
+     *  @param queueName
      *            the queue name.
+     * @param reason
      * @param jsonArray
-     *            the content of application message.
      */
-    public void scheduleBuild(String queueName, JSONArray jsonArray) {
+    public void scheduleBuild(String queueName, String reason, JSONArray jsonArray) {
         if (jsonArray != null) {
             List<ParameterValue> parameters = getUpdatedParameters(jsonArray, getDefinitionParameters(job));
-            ParameterizedJobMixIn.scheduleBuild2(job, 0, new CauseAction(new RemoteBuildCause(queueName)), new ParametersAction(parameters));
+            ParameterizedJobMixIn.scheduleBuild2(job, 0, new CauseAction(new RemoteBuildCause(queueName, reason)), new ParametersAction(parameters));
         } else {
-            ParameterizedJobMixIn.scheduleBuild2(job, 0, new CauseAction(new RemoteBuildCause(queueName)));
+            ParameterizedJobMixIn.scheduleBuild2(job, 0, new CauseAction(new RemoteBuildCause(queueName, reason)));
         }
     }
 

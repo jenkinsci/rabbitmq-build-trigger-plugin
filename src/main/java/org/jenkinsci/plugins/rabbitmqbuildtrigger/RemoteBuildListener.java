@@ -1,18 +1,19 @@
 package org.jenkinsci.plugins.rabbitmqbuildtrigger;
 
+import hudson.Extension;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+import net.sf.json.JSONSerializer;
+import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
+
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import hudson.Extension;
-import net.sf.json.JSONException;
-import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
-
-import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
+import java.util.regex.Pattern;
 
 /**
  * The extension listen application message then call triggers.
@@ -27,6 +28,7 @@ public class RemoteBuildListener extends MessageQueueListener {
     private static final String KEY_PROJECT = "project";
     private static final String KEY_TOKEN = "token";
     private static final String KEY_PARAMETER = "parameter";
+    private static final String KEY_REASON = "reason";
 
     private static final Logger LOGGER = Logger.getLogger(RemoteBuildListener.class.getName());
 
@@ -92,20 +94,22 @@ public class RemoteBuildListener extends MessageQueueListener {
                 String msg = new String(body, "UTF-8");
                 try {
                     JSONObject json = (JSONObject) JSONSerializer.toJSON(msg);
-                    for (RemoteBuildTrigger t : triggers) {
+                    Pattern targetProject = Pattern.compile(json.getString(KEY_PROJECT));
+                    String messageToken = json.getString(KEY_TOKEN);
+                    JSONArray parameters = json.has(KEY_PARAMETER) ? json.getJSONArray(KEY_PARAMETER) : null;
+                    String reason = json.has(KEY_REASON) ? json.getString(KEY_REASON) : null;
 
+                    LOGGER.log(Level.FINE, "Received message for project: {0}", targetProject.toString());
+
+                    for (RemoteBuildTrigger t : triggers) {
                         if (t.getRemoteBuildToken() == null) {
                             LOGGER.log(Level.WARNING, "ignoring AMQP trigger for project {0}: no token set", t.getProjectName());
                             continue;
                         }
 
-                        if (t.getProjectName().equals(json.getString(KEY_PROJECT))
-                                && t.getRemoteBuildToken().equals(json.getString(KEY_TOKEN))) {
-                            if (json.containsKey(KEY_PARAMETER)) {
-                                t.scheduleBuild(queueName, json.getJSONArray(KEY_PARAMETER));
-                            } else {
-                                t.scheduleBuild(queueName, null);
-                            }
+                        if (t.getRemoteBuildToken().equals(messageToken) && targetProject.matcher(t.getProjectName()).matches()) {
+                            LOGGER.log(Level.FINE, "Triggering project: {0}", t.getProjectName());
+                            t.scheduleBuild(queueName, reason, parameters);
                         }
                     }
                 } catch (JSONException e) {
