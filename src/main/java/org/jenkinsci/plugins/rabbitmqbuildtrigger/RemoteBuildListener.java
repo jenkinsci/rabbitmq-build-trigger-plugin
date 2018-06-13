@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.rabbitmqbuildtrigger;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -99,8 +100,10 @@ public class RemoteBuildListener extends MessageQueueListener {
                             continue;
                         }
 
+                        String[] remoteBuildTokens = t.getRemoteBuildToken().split(",");
+
                         if (t.getProjectName().equals(json.getString(KEY_PROJECT))
-                                && t.getRemoteBuildToken().equals(json.getString(KEY_TOKEN))) {
+                                && Arrays.asList(remoteBuildTokens).contains(json.getString(KEY_TOKEN))) {
                             if (json.containsKey(KEY_PARAMETER)) {
                                 t.scheduleBuild(queueName, json.getJSONArray(KEY_PARAMETER));
                             } else {
