@@ -7,12 +7,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
+
 import hudson.Extension;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
-
-import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 
 /**
  * The extension listen application message then call triggers.
@@ -30,7 +30,7 @@ public class RemoteBuildListener extends MessageQueueListener {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteBuildListener.class.getName());
 
-    private final Set<RemoteBuildTrigger> triggers = new CopyOnWriteArraySet<RemoteBuildTrigger>();
+    private final Set<RemoteBuildTrigger> triggers = new CopyOnWriteArraySet<>();
 
     @Override
     public String getName() {
@@ -47,10 +47,10 @@ public class RemoteBuildListener extends MessageQueueListener {
      *
      * @return the set of {@link RemoteBuildTrigger}.
      */
-    public  Set<RemoteBuildTrigger> getTriggers(){
+    public Set<RemoteBuildTrigger> getTriggers() {
         return this.triggers;
     }
-    
+
     /**
      * Adds trigger.
      *
@@ -95,7 +95,8 @@ public class RemoteBuildListener extends MessageQueueListener {
                     for (RemoteBuildTrigger t : triggers) {
 
                         if (t.getRemoteBuildToken() == null) {
-                            LOGGER.log(Level.WARNING, "ignoring AMQP trigger for project {0}: no token set", t.getProjectName());
+                            LOGGER.log(Level.WARNING, "ignoring AMQP trigger for project {0}: no token set",
+                                    t.getProjectName());
                             continue;
                         }
 

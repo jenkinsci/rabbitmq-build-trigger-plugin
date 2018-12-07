@@ -72,8 +72,10 @@ app_id: remote-build
 Pipeline support
 ------------------------
 
-This plugin can trigger pipeline jobs. In addition, this provides a trigger *rmqRemoteBuild*
-to *triggers* directive in pipeline script.
+This plugin can trigger pipeline jobs. In addition, this provides followings:
+
+* A trigger *rmqRemoteBuild* to *triggers* directive in pipeline script.
+* A notifier *rmqRemotePublish* to *step* or *post* directive in pipeline script.
 
 This can be used in *Jenkinsfile* e.g:
 
@@ -81,6 +83,11 @@ This can be used in *Jenkinsfile* e.g:
 pipeline {
     triggers {
         rmqRemoteBuild(remoteBuildToken: '<TOKEN>')
+    }
+    post {
+      always {
+        rmqRemotePublish(brokerName: '<EXCHANGE>', routingKey: '<ROUTINGKEY>')
+      }
     }
 }
 ```
@@ -100,4 +107,4 @@ MIT License
 Copyright
 ------------------------
 
-Copyright (c) 2013 rinrinne a.k.a. rin_ne
+Copyright (c) 2013-2018 rinrinne a.k.a. rin_ne

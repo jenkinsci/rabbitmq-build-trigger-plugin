@@ -1,5 +1,5 @@
 /**
-  * RabbitMQ Build Trigger package.
-  *
-  */
+ * RabbitMQ Build Trigger package.
+ *
+ */
 package org.jenkinsci.plugins.rabbitmqbuildtrigger;

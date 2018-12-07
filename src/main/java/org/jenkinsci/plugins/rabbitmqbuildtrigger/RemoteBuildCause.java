@@ -6,7 +6,7 @@ import hudson.model.Cause;
 
 /**
  * Cause class for remote build.
- * 
+ *
  * @author rinrinne a.k.a. rin_ne
  */
 public class RemoteBuildCause extends Cause {
@@ -15,7 +15,7 @@ public class RemoteBuildCause extends Cause {
 
     /**
      * Creates instance with specified parameter.
-     * 
+     *
      * @param queueName
      *            the queue name.
      */

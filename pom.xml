@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
@@ -40,9 +41,9 @@
     <!-- Jenkins Test Harness version you use to test the plugin. -->
     <!-- For Jenkins version >= 1.580.1 use JTH 2.x or higher. -->
     <!-- Other properties you may want to use:
-         ~ jenkins-test-harness: The test harness used by the plugin.
-         ~ hpi-plugin.version: The HPI Maven Plugin version used by the plugin..
-         ~ stapler-plugin.version: The Stapler Maven plugin version required by the plugin.
+      ~ jenkins-test-harness: The test harness used by the plugin.
+      ~ hpi-plugin.version: The HPI Maven Plugin version used by the plugin..
+      ~ stapler-plugin.version: The Stapler Maven plugin version required by the plugin.
     -->
     <jmockit.version>1.38</jmockit.version>
     <rabbitmq.consumer.version>2.8</rabbitmq.consumer.version>
@@ -68,9 +69,9 @@
       <version>${structs.version}</version>
     </dependency>
     <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
-        <version>${commons.lang3.version}</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons.lang3.version}</version>
     </dependency>
   </dependencies>
 
@@ -92,7 +93,7 @@
               </sources>
             </configuration>
           </execution>
-      </executions>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.jenkins-ci.tools</groupId>

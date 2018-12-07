@@ -1,19 +1,5 @@
 package org.jenkinsci.plugins.rabbitmqbuildtrigger;
 
-import hudson.Extension;
-import hudson.model.Item;
-import hudson.model.ParameterValue;
-import hudson.model.CauseAction;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.Project;
-import hudson.model.Job;
-import hudson.model.StringParameterValue;
-import hudson.model.listeners.ItemListener;
-import hudson.triggers.Trigger;
-import hudson.triggers.TriggerDescriptor;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,16 +7,28 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import jenkins.model.Jenkins;
-
-import jenkins.model.ParameterizedJobMixIn;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
 import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import hudson.Extension;
+import hudson.model.CauseAction;
+import hudson.model.Item;
+import hudson.model.Job;
+import hudson.model.ParameterDefinition;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.Project;
+import hudson.model.StringParameterValue;
+import hudson.model.listeners.ItemListener;
+import hudson.triggers.Trigger;
+import hudson.triggers.TriggerDescriptor;
+import jenkins.model.Jenkins;
+import jenkins.model.ParameterizedJobMixIn;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 /**
  * The extension trigger builds by application message.
@@ -85,18 +83,19 @@ public class RemoteBuildTrigger<T extends Job<?, ?> & ParameterizedJobMixIn.Para
     /**
      * Remove the duplicated trigger from the triggers.
      *
-     * @param triggers 
-     *          the set of current trigger instances which have already been loaded in the memory 
+     * @param triggers
+     *            the set of current trigger instances which have already been
+     *            loaded in the memory
      */
-    public void removeDuplicatedTrigger(Set<RemoteBuildTrigger> triggers){
-        Map<String,RemoteBuildTrigger>  tempHashMap= new HashMap<String,RemoteBuildTrigger>(); 
-        for(RemoteBuildTrigger trigger:triggers){
+    public void removeDuplicatedTrigger(Set<RemoteBuildTrigger> triggers) {
+        Map<String, RemoteBuildTrigger> tempHashMap = new HashMap<>();
+        for (RemoteBuildTrigger trigger : triggers) {
             tempHashMap.put(trigger.getProjectName(), trigger);
-        }    
+        }
         triggers.clear();
         triggers.addAll(tempHashMap.values());
     }
-    
+
     /**
      * Gets token.
      *
@@ -109,7 +108,8 @@ public class RemoteBuildTrigger<T extends Job<?, ?> & ParameterizedJobMixIn.Para
     /**
      * Sets token.
      *
-     * @param remoteBuildToken the token.
+     * @param remoteBuildToken
+     *            the token.
      */
     public void setRemoteBuildToken(String remoteBuildToken) {
         this.remoteBuildToken = remoteBuildToken;
@@ -121,7 +121,7 @@ public class RemoteBuildTrigger<T extends Job<?, ?> & ParameterizedJobMixIn.Para
      * @return the project name.
      */
     public String getProjectName() {
-        if(job!=null){
+        if (job != null) {
             return job.getFullName();
         }
         return "";
@@ -137,12 +137,13 @@ public class RemoteBuildTrigger<T extends Job<?, ?> & ParameterizedJobMixIn.Para
      */
     public void scheduleBuild(String queueName, JSONArray jsonArray) {
         if (job != null) {
-          if (jsonArray != null) {
-              List<ParameterValue> parameters = getUpdatedParameters(jsonArray, getDefinitionParameters(job));
-              ParameterizedJobMixIn.scheduleBuild2(job, 0, new CauseAction(new RemoteBuildCause(queueName)), new ParametersAction(parameters));
-          } else {
-              ParameterizedJobMixIn.scheduleBuild2(job, 0, new CauseAction(new RemoteBuildCause(queueName)));
-          }
+            if (jsonArray != null) {
+                List<ParameterValue> parameters = getUpdatedParameters(jsonArray, getDefinitionParameters(job));
+                ParameterizedJobMixIn.scheduleBuild2(job, 0, new CauseAction(new RemoteBuildCause(queueName)),
+                        new ParametersAction(parameters));
+            } else {
+                ParameterizedJobMixIn.scheduleBuild2(job, 0, new CauseAction(new RemoteBuildCause(queueName)));
+            }
         }
     }
 
@@ -155,8 +156,9 @@ public class RemoteBuildTrigger<T extends Job<?, ?> & ParameterizedJobMixIn.Para
      *            the list of defined paramters.
      * @return the list of parameter values.
      */
-    private List<ParameterValue> getUpdatedParameters(JSONArray jsonParameters, List<ParameterValue> definedParameters) {
-        List<ParameterValue> newParams = new ArrayList<ParameterValue>();
+    private List<ParameterValue> getUpdatedParameters(JSONArray jsonParameters,
+            List<ParameterValue> definedParameters) {
+        List<ParameterValue> newParams = new ArrayList<>();
         for (ParameterValue defParam : definedParameters) {
 
             for (int i = 0; i < jsonParameters.size(); i++) {
@@ -178,9 +180,8 @@ public class RemoteBuildTrigger<T extends Job<?, ?> & ParameterizedJobMixIn.Para
      * @return the list of parameter values.
      */
     private List<ParameterValue> getDefinitionParameters(Job<?, ?> project) {
-        List<ParameterValue> parameters = new ArrayList<ParameterValue>();
-        ParametersDefinitionProperty properties = project
-                .getProperty(ParametersDefinitionProperty.class);
+        List<ParameterValue> parameters = new ArrayList<>();
+        ParametersDefinitionProperty properties = project.getProperty(ParametersDefinitionProperty.class);
 
         if (properties != null) {
             for (ParameterDefinition paramDef : properties.getParameterDefinitions()) {
@@ -204,7 +205,8 @@ public class RemoteBuildTrigger<T extends Job<?, ?> & ParameterizedJobMixIn.Para
      *
      * @author rinrinne a.k.a. rin_ne
      */
-    @Extension @Symbol("rmqRemoteBuild")
+    @Extension
+    @Symbol("rmqRemoteBuild")
     public static class DescriptorImpl extends TriggerDescriptor {
 
         @Override
