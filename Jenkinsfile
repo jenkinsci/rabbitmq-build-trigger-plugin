@@ -1,3 +1,6 @@
 buildPlugin(
-  jenkinsVersions: [ null, '2.7.1', '2.102' ]
-)
+  useContainerAgent: true,
+  configurations: [
+    [platform: 'linux', jdk: 21],
+    [platform: 'windows', jdk: 17],
+  ])

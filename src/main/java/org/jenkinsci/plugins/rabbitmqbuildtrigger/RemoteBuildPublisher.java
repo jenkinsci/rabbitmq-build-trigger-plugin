@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import jenkins.model.Jenkins;
@@ -55,6 +56,11 @@ public class RemoteBuildPublisher extends Notifier {
      * @param brokerName the broker name.
      * @param routingKey the routing key.
      */
+    /**
+     * Supplies the channel used to publish. Replaceable for testing only.
+     */
+    static volatile Supplier<PublishChannel> channelSupplier = PublishChannelFactory::getPublishChannel;
+
     @DataBoundConstructor
     public RemoteBuildPublisher(String brokerName, String routingKey) {
         this.brokerName = brokerName;
@@ -154,7 +160,7 @@ public class RemoteBuildPublisher extends Notifier {
         builder.headers(headers);
 
         // Publish message
-        PublishChannel ch = PublishChannelFactory.getPublishChannel();
+        PublishChannel ch = channelSupplier.get();
         if (ch != null && ch.isOpen()) {
             // return value is not needed if you don't need to wait.
             Future<PublishResult> future = ch.publish(brokerName, routingKey, builder.build(),
@@ -206,7 +212,7 @@ public class RemoteBuildPublisher extends Notifier {
          */
         @Override
         public String getDisplayName() {
-            return Messages.RabbitMQBuildPublisher();
+            return Messages.rabbitMQBuildPublisher();
         }
     }
 }
