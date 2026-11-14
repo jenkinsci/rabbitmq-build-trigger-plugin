@@ -2,7 +2,7 @@ package org.jenkinsci.plugins.rabbitmqbuildtrigger;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.concurrent.Future;
 
@@ -11,9 +11,10 @@ import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishChannelFactory;
 import org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishResult;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import com.rabbitmq.client.AMQP;
 
@@ -33,10 +34,14 @@ import jenkins.model.Jenkins;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-public class JenkinsTest {
-    // CS IGNORE VisibilityModifier FOR NEXT 3 LINES. REASON: Mocks tests.
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+@WithJenkins
+class JenkinsTest {
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     Builder createBuilder(Boolean isWindows) {
         if (isWindows) {
@@ -47,7 +52,7 @@ public class JenkinsTest {
     }
 
     @Test
-    public void testTriggerBuild() throws Exception {
+    void testTriggerBuild() throws Exception {
         RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
         FreeStyleProject project = j.createFreeStyleProject("triggered-project");
         project.addTrigger(trigger);
@@ -66,7 +71,7 @@ public class JenkinsTest {
     }
 
     @Test
-    public void testNonTriggerBuild() throws Exception {
+    void testNonTriggerBuild() throws Exception {
         RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
         FreeStyleProject project = j.createFreeStyleProject("triggered-project2");
         project.addTrigger(trigger);
@@ -87,7 +92,7 @@ public class JenkinsTest {
     }
 
     @Test
-    public void testTriggerWithPublisher() throws Exception {
+    void testTriggerWithPublisher() throws Exception {
         PublishChannel channel = Mockito.mock(PublishChannel.class);
         @SuppressWarnings("unchecked")
         Future<PublishResult> future = Mockito.mock(Future.class);
@@ -136,7 +141,7 @@ public class JenkinsTest {
     }
 
     @Test
-    public void testTriggerBuildWithParameter() throws Exception {
+    void testTriggerBuildWithParameter() throws Exception {
         RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
         StringParameterDefinition definition = new StringParameterDefinition("HOGE", "");
         ParametersDefinitionProperty property = new ParametersDefinitionProperty(definition);

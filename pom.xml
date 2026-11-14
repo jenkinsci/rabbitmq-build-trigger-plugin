@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>5.9</version>
+    <version>6.2250.va_d01d559a_209</version>
     <relativePath />
   </parent>
 
@@ -35,7 +35,7 @@
 
   <properties>
     <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
-    <jenkins.baseline>2.479</jenkins.baseline>
+    <jenkins.baseline>2.541</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
     <rabbitmq.consumer.version>2.8</rabbitmq.consumer.version>
   </properties>
@@ -45,7 +45,7 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${jenkins.baseline}.x</artifactId>
-        <version>5054.v620b_5d2b_d5e6</version>
+        <version>7002.v028a_3607ddc8</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
