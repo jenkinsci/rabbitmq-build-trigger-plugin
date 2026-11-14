@@ -41,7 +41,7 @@ public class RemoteBuildTrigger<T extends Job<?, ?> & ParameterizedJobMixIn.Para
 
     public static final String PLUGIN_APPID = "remote-build";
 
-    private static final String PLUGIN_NAME = Messages.RabbitMQBuildTrigger();
+    private static final String PLUGIN_NAME = Messages.rabbitMQBuildTrigger();
 
     private static final String KEY_PARAM_NAME = "name";
     private static final String KEY_PARAM_VALUE = "value";

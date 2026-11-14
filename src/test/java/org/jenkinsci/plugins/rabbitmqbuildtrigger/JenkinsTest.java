@@ -2,7 +2,7 @@ package org.jenkinsci.plugins.rabbitmqbuildtrigger;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.concurrent.Future;
 
@@ -11,9 +11,10 @@ import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishChannelFactory;
 import org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishResult;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import com.rabbitmq.client.AMQP;
 
@@ -30,23 +31,17 @@ import hudson.tasks.BatchFile;
 import hudson.tasks.Builder;
 import hudson.tasks.Shell;
 import jenkins.model.Jenkins;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
-public class JenkinsTest {
-    // CS IGNORE VisibilityModifier FOR NEXT 3 LINES. REASON: Mocks tests.
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+@WithJenkins
+class JenkinsTest {
+    private JenkinsRule j;
 
-    @Mocked
-    PublishChannelFactory factory = null;
-
-    @Mocked
-    PublishChannel channel = null;
-
-    @Mocked
-    Future<PublishResult> future = null;
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     Builder createBuilder(Boolean isWindows) {
         if (isWindows) {
@@ -57,7 +52,7 @@ public class JenkinsTest {
     }
 
     @Test
-    public void testTriggerBuild() throws Exception {
+    void testTriggerBuild() throws Exception {
         RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
         FreeStyleProject project = j.createFreeStyleProject("triggered-project");
         project.addTrigger(trigger);
@@ -76,7 +71,7 @@ public class JenkinsTest {
     }
 
     @Test
-    public void testNonTriggerBuild() throws Exception {
+    void testNonTriggerBuild() throws Exception {
         RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
         FreeStyleProject project = j.createFreeStyleProject("triggered-project2");
         project.addTrigger(trigger);
@@ -97,20 +92,23 @@ public class JenkinsTest {
     }
 
     @Test
-    public void testTriggerWithPublisher() throws Exception {
-        new Expectations() {
-            {
-                PublishChannelFactory.getPublishChannel();
-                result = channel;
-                channel.isOpen();
-                result = true;
-                channel.publish(anyString, anyString, (AMQP.BasicProperties) any, new byte[] { anyByte });
-                result = future;
-                minTimes = 0;
-                future.get();
-                result = new PublishResult(true, "", "");
-            }
-        };
+    void testTriggerWithPublisher() throws Exception {
+        PublishChannel channel = Mockito.mock(PublishChannel.class);
+        @SuppressWarnings("unchecked")
+        Future<PublishResult> future = Mockito.mock(Future.class);
+        Mockito.when(channel.isOpen()).thenReturn(true);
+        Mockito.when(channel.publish(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
+                .thenReturn(future);
+        Mockito.when(future.get()).thenReturn(new PublishResult(true, "", ""));
+        RemoteBuildPublisher.channelSupplier = () -> channel;
+        try {
+            runPublisherScenario(channel);
+        } finally {
+            RemoteBuildPublisher.channelSupplier = PublishChannelFactory::getPublishChannel;
+        }
+    }
+
+    private void runPublisherScenario(PublishChannel channel) throws Exception {
         RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
         RemoteBuildPublisher publisher = new RemoteBuildPublisher("exchange", "routing-key");
         FreeStyleProject project = j.createFreeStyleProject("triggered-project-publisher");
@@ -129,27 +127,21 @@ public class JenkinsTest {
         String s = FileUtils.readFileToString(build.getLogFile());
         assertThat(s, containsString("TRIGGERED"));
 
-        new Verifications() {
-            {
-                String exchangeName;
-                String routingKey;
-                AMQP.BasicProperties props;
-                byte[] body;
-                channel.publish(exchangeName = withCapture(), routingKey = withCapture(), props = withCapture(),
-                        body = withCapture());
-                times = 1;
+        ArgumentCaptor<String> exchangeName = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> routingKey = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<AMQP.BasicProperties> props = ArgumentCaptor.forClass(AMQP.BasicProperties.class);
+        Mockito.verify(channel, Mockito.times(1)).publish(exchangeName.capture(), routingKey.capture(),
+                props.capture(), Mockito.any());
 
-                assertThat(exchangeName, is("exchange"));
-                assertThat(routingKey, is("routing-key"));
-                assertThat(props.getAppId(), is(RemoteBuildTrigger.PLUGIN_APPID));
-                assertThat(props.getContentType(), is("application/json"));
-                assertThat(props.getHeaders().get("jenkins-url").toString(), is(Jenkins.getInstance().getRootUrl()));
-            }
-        };
+        assertThat(exchangeName.getValue(), is("exchange"));
+        assertThat(routingKey.getValue(), is("routing-key"));
+        assertThat(props.getValue().getAppId(), is(RemoteBuildTrigger.PLUGIN_APPID));
+        assertThat(props.getValue().getContentType(), is("application/json"));
+        assertThat(props.getValue().getHeaders().get("jenkins-url").toString(), is(Jenkins.get().getRootUrl()));
     }
 
     @Test
-    public void testTriggerBuildWithParameter() throws Exception {
+    void testTriggerBuildWithParameter() throws Exception {
         RemoteBuildTrigger trigger = new RemoteBuildTrigger("trigger-token");
         StringParameterDefinition definition = new StringParameterDefinition("HOGE", "");
         ParametersDefinitionProperty property = new ParametersDefinitionProperty(definition);
